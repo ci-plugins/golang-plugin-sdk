@@ -246,3 +246,19 @@ func GetPipelineVersion() string {
 func GetWorkspace() string {
 	return gAtomBaseParam.BkWorkspace
 }
+
+func GetTestVersionFlag() string {
+	return gAtomBaseParam.TestVersionFlag
+}
+
+func GetBkSensitiveConfInfo() map[string]string {
+	return gAtomBaseParam.BkSensitiveConfInfo
+}
+
+func GetPipelineTaskId() string {
+	return gAtomBaseParam.PipelineTaskId
+}
+
+func GetPipelineUpdateUserName() string {
+	return gAtomBaseParam.PipelineUpdateUserName
+}
