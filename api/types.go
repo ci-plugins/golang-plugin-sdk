@@ -54,18 +54,22 @@ type SdkEnv struct {
 }
 
 type AtomBaseParam struct {
-	PipelineVersion        string `json:"pipeline.version"`
-	ProjectName            string `json:"project.name"`
-	ProjectNameCn          string `json:"project.name.chinese"`
-	PipelineId             string `json:"pipeline.id"`
-	PipelineBuildNum       string `json:"pipeline.build.num"`
-	PipelineBuildId        string `json:"pipeline.build.id"`
-	PipelineName           string `json:"pipeline.name"`
-	PipelineStartTimeMills string `json:"pipeline.time.start"`
-	PipelineStartType      string `json:"pipeline.start.type"`
-	PipelineStartUserId    string `json:"pipeline.start.user.id"`
-	PipelineStartUserName  string `json:"pipeline.start.user.name"`
-	BkWorkspace            string `json:"bkWorkspace"`
+	PipelineVersion        string            `json:"BK_CI_PIPELINE_VERSION"`
+	ProjectName            string            `json:"BK_CI_PROJECT_NAME"`
+	ProjectNameCn          string            `json:"BK_CI_PROJECT_NAME_CN"`
+	PipelineId             string            `json:"BK_CI_PIPELINE_ID"`
+	PipelineBuildNum       string            `json:"BK_CI_BUILD_NUM"`
+	PipelineBuildId        string            `json:"BK_CI_BUILD_ID"`
+	PipelineName           string            `json:"BK_CI_PIPELINE_NAME"`
+	PipelineStartTimeMills string            `json:"BK_CI_BUILD_START_TIME"`
+	PipelineStartType      string            `json:"BK_CI_START_TYPE"`
+	PipelineStartUserId    string            `json:"BK_CI_START_USER_ID"`
+	PipelineStartUserName  string            `json:"BK_CI_START_USER_NAME"`
+	BkWorkspace            string            `json:"bkWorkspace"`
+	TestVersionFlag        string            `json:"testVersionFlag"`
+	BkSensitiveConfInfo    map[string]string `json:"bkSensitiveConfInfo"`
+	PipelineTaskId         string            `json:"BK_CI_BUILD_TASK_ID"`
+	PipelineUpdateUserName string            `json:"BK_CI_PIPELINE_UPDATE_USER"`
 }
 
 type BuildType string
