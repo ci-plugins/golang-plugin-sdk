@@ -291,7 +291,7 @@ func GetGateWayHost() string {
 func GenUrl(path string) string {
 	path = strings.TrimSpace(path)
 	if !hasProtocol(path) {
-		return GetGateWayHost() + strings.TrimPrefix(path, "/")
+		return GetGateWayHost() + "/" + strings.TrimPrefix(path, "/")
 	} else {
 		return path
 	}
