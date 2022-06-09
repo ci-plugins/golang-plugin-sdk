@@ -246,3 +246,53 @@ func GetPipelineVersion() string {
 func GetWorkspace() string {
 	return gAtomBaseParam.BkWorkspace
 }
+
+func GetTestVersionFlag() string {
+	return gAtomBaseParam.TestVersionFlag
+}
+
+func GetBkSensitiveConfInfo() map[string]string {
+	return gAtomBaseParam.BkSensitiveConfInfo
+}
+
+func GetPipelineTaskId() string {
+	return gAtomBaseParam.PipelineTaskId
+}
+
+func GetPipelineUpdateUserName() string {
+	return gAtomBaseParam.PipelineUpdateUserName
+}
+
+func GetSdkHeader() map[string]string {
+	return map[string]string{
+		AuthHeaderDevopsBuildType:      gSdkEvn.BuildType,
+		AuthHeaderDevopsProjectId:      gSdkEvn.ProjectId,
+		AuthHeaderProjectId:            gSdkEvn.ProjectId,
+		AuthHeaderDevopsAgentSecretKey: gSdkEvn.SecretKey,
+		AuthHeaderDevopsAgentId:        gSdkEvn.AgentId,
+		AuthHeaderDevopsVmSeqId:        gSdkEvn.VmSeqId, AuthHeaderDevopsBuildId: gSdkEvn.BuildId,
+		AuthHeaderBuildId: gSdkEvn.BuildId,
+	}
+}
+
+func hasProtocol(url string) bool {
+	return strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://")
+}
+
+func GetGateWayHost() string {
+	gateway := gSdkEvn.Gateway
+	if !hasProtocol(gateway) {
+		return "http://" + gateway
+	} else {
+		return gateway
+	}
+}
+
+func GenUrl(path string) string {
+	path = strings.TrimSpace(path)
+	if !hasProtocol(path) {
+		return GetGateWayHost() + strings.TrimPrefix(path, "/")
+	} else {
+		return path
+	}
+}
