@@ -29,6 +29,8 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -45,6 +47,12 @@ var gDataDir string
 var gInputFile string
 var gOutputFile string
 
+// StringResult 蓝盾后台返回结果
+type StringResult struct {
+	Status int         `json:"status"`
+	Data   interface{} `json:"data"`
+}
+
 func init() {
 	gAtomOutput = NewAtomOutput()
 	gDataDir = getDataDir()
@@ -58,17 +66,22 @@ func initAtomParam() {
 	err := LoadInputParam(&gAllAtomParam)
 	if err != nil {
 		log.Error("init atom base param failed: ", err.Error())
-		FinishBuildWithErrorCode(StatusError, "init atom base param failed", 16015100)
+		FinishBuildWithError(StatusError, "init atom base param failed", 2189503, PluginError)
 	}
 
 	gAtomBaseParam = new(AtomBaseParam)
 	err = LoadInputParam(gAtomBaseParam)
+	postActionParam := flag.String("postAction", "noPostAction", "后置动作")
+	flag.Parse()
+	gAtomBaseParam.PostActionParam = *postActionParam
 	if err != nil {
 		log.Error("init atom base param failed: ", err.Error())
-		FinishBuildWithErrorCode(StatusError, "init atom base param failed", 16015100)
+		FinishBuildWithError(StatusError, "init atom base param failed", 2189503, PluginError)
 	}
 }
 
+// GetInputParam 获取输入参数
+// @name	参数名称
 func GetInputParam(name string) string {
 	value := gAllAtomParam[name]
 	if value == nil {
@@ -81,6 +94,7 @@ func GetInputParam(name string) string {
 	return strValue
 }
 
+// LoadInputParam 加载输入参数
 func LoadInputParam(v interface{}) error {
 	file := gDataDir + "/" + gInputFile
 	data, err := ioutil.ReadFile(file)
@@ -101,17 +115,17 @@ func initSdkEnv() {
 	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		log.Error("read .sdk.json failed: ", err.Error())
-		FinishBuildWithErrorCode(StatusError, "read .sdk.json failed", 16015102)
+		FinishBuildWithError(StatusError, "read .sdk.json failed", 2189503, PluginError)
 	}
 
 	gSdkEvn = new(SdkEnv)
 	err = json.Unmarshal(data, gSdkEvn)
 	if err != nil {
 		log.Error("parse .sdk.json failed: ", err.Error())
-		FinishBuildWithErrorCode(StatusError, "parse .sdk.json failed", 16015102)
+		FinishBuildWithError(StatusError, "read .sdk.json failed", 2189503, PluginError)
 	}
 
-	os.Remove(filePath)
+	// os.Remove(filePath)
 }
 
 func getDataDir() string {
@@ -138,18 +152,48 @@ func getOutputFile() string {
 	return file
 }
 
+// GetOutputData 获取输出参数
 func GetOutputData(key string) interface{} {
 	return gAtomOutput.Data[key]
 }
 
+// AddOutputData 添加输出参数
 func AddOutputData(key string, data interface{}) {
 	gAtomOutput.Data[key] = data
 }
 
+// RemoveOutputData 删除输出参数
 func RemoveOutputData(key string) {
 	delete(gAtomOutput.Data, key)
 }
 
+// GetQualityData 获取质量红线信息
+func GetQualityData(qualityKey string) interface{} {
+	return gAtomOutput.QualityData[qualityKey]
+}
+
+// AddQualityData 添加质量红线信息
+func AddQualityData(qualityKey string, qualitydata *Qualitydata) {
+	gAtomOutput.Type = "quality"
+	gAtomOutput.QualityData[qualityKey] = qualitydata
+}
+
+// RemoveQualityData 删除质量红线信息
+func RemoveQualityData(qualityKey string) {
+	delete(gAtomOutput.QualityData, qualityKey)
+}
+
+// SetPlatformCode 设置插件对接平台代码
+func SetPlatformCode(platformCode string) {
+	gAtomOutput.PlatformCode = platformCode
+}
+
+// SetPlatformErrorCode 设置插件对接平台错误码
+func SetPlatformErrorCode(platformErrorCode int) {
+	gAtomOutput.PlatformErrorCode = platformErrorCode
+}
+
+// WriteOutput 将输出写到文件
 func WriteOutput() error {
 	data, _ := json.Marshal(gAtomOutput)
 
@@ -162,6 +206,7 @@ func WriteOutput() error {
 	return nil
 }
 
+// FinishBuild 结束构建
 func FinishBuild(status Status, msg string) {
 	gAtomOutput.Message = msg
 	gAtomOutput.Status = status
@@ -178,6 +223,10 @@ func FinishBuild(status Status, msg string) {
 	}
 }
 
+// FinishBuildWithErrorCode 结束构建
+// @status		任务状态
+// @msg			消息
+// @errorCode	错误码
 func FinishBuildWithErrorCode(status Status, msg string, errorCode int) {
 	gAtomOutput.Message = msg
 	gAtomOutput.Status = status
@@ -195,104 +244,203 @@ func FinishBuildWithErrorCode(status Status, msg string, errorCode int) {
 	}
 }
 
+// FinishBuildWithError 结束构建
+// @status		任务状态
+// @msg			消息
+// @errorCode	错误码
+// @errorType	错误类型
+func FinishBuildWithError(status Status, msg string, errorCode int, errorType ErrorType) {
+	gAtomOutput.Message = msg
+	gAtomOutput.Status = status
+	gAtomOutput.ErrorCode = errorCode
+	gAtomOutput.ErrorType = errorType
+	WriteOutput()
+	switch status {
+	case StatusSuccess:
+		os.Exit(0)
+	case StatusFailure:
+		os.Exit(1)
+	case StatusError:
+		os.Exit(2)
+	default:
+		os.Exit(0)
+	}
+}
+
+// SetAtomOutputType 获取插件输出类型
 func SetAtomOutputType(atomOutputType string) {
 	gAtomOutput.Type = atomOutputType
 }
 
+// GetProjectName 获取项目名称
 func GetProjectName() string {
 	return gAtomBaseParam.ProjectName
 }
 
+// GetProjectDisplayName 获取项目显示名称
 func GetProjectDisplayName() string {
 	return gAtomBaseParam.ProjectNameCn
 }
 
+// GetPipelineId 获取流水线ID
 func GetPipelineId() string {
 	return gAtomBaseParam.PipelineId
 }
 
+// GetPipelineName 获取流水线名称
 func GetPipelineName() string {
 	return gAtomBaseParam.PipelineName
 }
 
+// GetPipelineBuildId 获取构建ID
 func GetPipelineBuildId() string {
 	return gAtomBaseParam.PipelineBuildId
 }
 
+// GetPipelineBuildNumber 获取构建号
 func GetPipelineBuildNumber() string {
 	return gAtomBaseParam.PipelineBuildNum
 }
 
+// GetPipelineStartType 获取流水线启动方式
 func GetPipelineStartType() string {
 	return gAtomBaseParam.PipelineStartType
 }
 
+// GetPipelineStartUserId 获取流水线启动用户ID
 func GetPipelineStartUserId() string {
 	return gAtomBaseParam.PipelineStartUserId
 }
 
+// GetPipelineStartUserName 获取流水线启动用户名
 func GetPipelineStartUserName() string {
 	return gAtomBaseParam.PipelineStartUserName
 }
 
+// GetPipelineStartTimeMills 获取流水线启动时间
 func GetPipelineStartTimeMills() string {
 	return gAtomBaseParam.PipelineStartTimeMills
 }
 
+// GetPipelineVersion 获取流水线版本号
 func GetPipelineVersion() string {
 	return gAtomBaseParam.PipelineVersion
 }
 
+// GetWorkspace 获取工作目录
 func GetWorkspace() string {
+	if gAtomBaseParam.BkWorkspace == "" {
+		return "."
+	}
 	return gAtomBaseParam.BkWorkspace
 }
 
-func GetTestVersionFlag() string {
-	return gAtomBaseParam.TestVersionFlag
+// GetPipelineCreateUser 获取流水线创建人
+func GetPipelineCreateUser() string {
+	return gAtomBaseParam.PipelineCreateUser
 }
 
-func GetBkSensitiveConfInfo() map[string]string {
-	return gAtomBaseParam.BkSensitiveConfInfo
+// GetPipelineModifyUser 获取流水线最后修改人
+func GetPipelineModifyUser() string {
+	return gAtomBaseParam.PipelineModifyUser
 }
 
-func GetPipelineTaskId() string {
-	return gAtomBaseParam.PipelineTaskId
+// GetSensitiveConfParam 获取插件敏感参数
+func GetSensitiveConfParam(fieldName string) string {
+	return gAtomBaseParam.BkSensitiveConfInfo[fieldName]
 }
 
-func GetPipelineUpdateUserName() string {
-	return gAtomBaseParam.PipelineUpdateUserName
+// GetPostActionParam 获取后置执行参数
+func GetPostActionParam() string {
+	return gAtomBaseParam.PostActionParam
 }
 
-func GetSdkHeader() map[string]string {
-	return map[string]string{
-		AuthHeaderDevopsBuildType:      gSdkEvn.BuildType,
-		AuthHeaderDevopsProjectId:      gSdkEvn.ProjectId,
-		AuthHeaderProjectId:            gSdkEvn.ProjectId,
-		AuthHeaderDevopsAgentSecretKey: gSdkEvn.SecretKey,
-		AuthHeaderDevopsAgentId:        gSdkEvn.AgentId,
-		AuthHeaderDevopsVmSeqId:        gSdkEvn.VmSeqId, AuthHeaderDevopsBuildId: gSdkEvn.BuildId,
-		AuthHeaderBuildId: gSdkEvn.BuildId,
+// GetBuildVarByKey 获取指定构建下的构建参数
+func GetBuildVarByKey(key string) (string, error) {
+	if key == "" {
+		return "", errors.New("key is empty")
 	}
-}
 
-func hasProtocol(url string) bool {
-	return strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://")
-}
-
-func GetGateWayHost() string {
-	gateway := gSdkEvn.Gateway
-	if !hasProtocol(gateway) {
-		return "http://" + gateway
-	} else {
-		return gateway
+	vars, err := GetBuildVar()
+	if err != nil {
+		return "", err
 	}
+
+	value, ok := vars[key].(string)
+	if !ok {
+		log.Error("key ", key, " is not exist in map")
+		return "", nil
+	}
+	return value, nil
 }
 
-func GenUrl(path string) string {
-	path = strings.TrimSpace(path)
-	if !hasProtocol(path) {
-		return GetGateWayHost() + "/" + strings.TrimPrefix(path, "/")
-	} else {
-		return path
+// GetBuildVar 获取指定构建下的构建参数
+func GetBuildVar() (map[string]interface{}, error) {
+	url := buildUrl("process/api/build/variable/getBuildVariable")
+	headers := getAllHeaders()
+	headers["X-DEVOPS-BUILD-ID"] = gAtomBaseParam.PipelineBuildId
+	headers["X-DEVOPS-PROJECT-ID"] = gAtomBaseParam.ProjectName
+	headers["X-DEVOPS-PIPELINE-ID"] = gAtomBaseParam.PipelineId
+	build := BuildRequest{path: url, headers: headers, requestBody: nil}
+	req, err := buildGet(build)
+	if err != nil {
+		log.Error("fail to generate request: ", err)
+		return nil, err
 	}
+
+	respByte, err := request(*req, "fail to get build variable")
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info(string(respByte))
+	result := new(Result)
+	err = json.Unmarshal(respByte, result)
+	if err != nil {
+		log.Error("fail to unmarshal response message: ", err)
+		return nil, err
+	}
+
+	buildVar := result.Data.(map[string]interface{})
+	return buildVar, nil
+}
+
+// GetBuildContextByKey 获取指定构建下的构建上下文
+// Deprecated: 该接口将在后期弃用,请改用 GetVariableByName.
+func GetBuildContextByKey(key string) string {
+	return getVariable(key, false)
+}
+
+// GetVariableByName 获取指定构建下的构建上下文新版
+func GetVariableByName(name string) string {
+	return getVariable(name, true)
+}
+
+func getVariable(name string, check bool) string {
+	url := buildUrl("process/api/build/variable/get_build_context?contextName=" + name + "&check=" + fmt.Sprintf("%t", check))
+	headers := getAllHeaders()
+	headers["X-DEVOPS-BUILD-ID"] = gAtomBaseParam.PipelineBuildId
+	headers["X-DEVOPS-PROJECT-ID"] = gAtomBaseParam.ProjectName
+	headers["X-DEVOPS-PIPELINE-ID"] = gAtomBaseParam.PipelineId
+	build := BuildRequest{path: url, headers: headers, requestBody: nil}
+	req, err := buildGet(build)
+	if err != nil {
+		log.Error("fail to generate request: ", err)
+		return ""
+	}
+
+	respByte, err := request(*req, "fail to get build context")
+	if err != nil {
+		return ""
+	}
+
+	log.Info(string(respByte))
+	result := new(Result)
+	err = json.Unmarshal(respByte, result)
+	if err != nil {
+		log.Error("fail to unmarshal response message: ", err)
+		return ""
+	}
+	respStr := result.Data.(string)
+	return respStr
 }

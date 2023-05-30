@@ -24,68 +24,123 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
- package log
+package log
 
- import (
-	 "fmt"
-	 "sync"
- )
- 
- var lock = new(sync.Mutex)
- 
- // Info 日志
- func Info(v ...interface{}) {
-	 lock.Lock()
-	 fmt.Print("##[info]")
-	 fmt.Println(v...)
-	 lock.Unlock()
- }
- 
- // Warn 日志
- func Warn(v ...interface{}) {
-	 lock.Lock()
-	 fmt.Print("##[warning]")
-	 fmt.Println(v...)
-	 lock.Unlock()
- }
- 
- // Error 日志
- func Error(v ...interface{}) {
-	 lock.Lock()
-	 fmt.Print("##[error]")
-	 fmt.Println(v...)
-	 lock.Unlock()
- }
- 
- // Debug 日志
- func Debug(v ...interface{}) {
-	 lock.Lock()
-	 fmt.Print("##[debug]")
-	 fmt.Println(v...)
-	 lock.Unlock()
- }
- 
- // Command 日志
- func Command(v ...interface{}) {
-	 lock.Lock()
-	 fmt.Print("##[command]")
-	 fmt.Println(v...)
-	 lock.Unlock()
- }
- 
- // Group 分组日志开始
- func Group(v ...interface{}) {
-	 lock.Lock()
-	 fmt.Print("##[group]")
-	 fmt.Println(v...)
-	 lock.Unlock()
- }
- 
- // EndGroup 分组日志结束
- func EndGroup(v ...interface{}) {
-	 lock.Lock()
-	 fmt.Print("##[endgroup]")
-	 fmt.Println(v)
-	 lock.Unlock()
- }
- 
+import (
+	"fmt"
+	"sync"
+)
+
+var lock = new(sync.Mutex)
+
+// Info 日志
+func Info(v ...interface{}) {
+	lock.Lock()
+	fmt.Print("##[info]")
+	fmt.Println(v...)
+	lock.Unlock()
+}
+
+// Warn 日志
+func Warn(v ...interface{}) {
+	lock.Lock()
+	fmt.Print("##[warning]")
+	fmt.Println(v...)
+	lock.Unlock()
+}
+
+// Error 日志
+func Error(v ...interface{}) {
+	lock.Lock()
+	fmt.Print("##[error]")
+	fmt.Println(v...)
+	lock.Unlock()
+}
+
+// Debug 日志
+func Debug(v ...interface{}) {
+	lock.Lock()
+	fmt.Print("##[debug]")
+	fmt.Println(v...)
+	lock.Unlock()
+}
+
+// Command 日志
+func Command(v ...interface{}) {
+	lock.Lock()
+	fmt.Print("##[command]")
+	fmt.Println(v...)
+	lock.Unlock()
+}
+
+// Group 分组日志开始
+func Group(v ...interface{}) {
+	lock.Lock()
+	fmt.Print("##[group]")
+	fmt.Println(v...)
+	lock.Unlock()
+}
+
+// EndGroup 分组日志结束
+func EndGroup(v ...interface{}) {
+	lock.Lock()
+	fmt.Print("##[endgroup]")
+	fmt.Println(v...)
+	lock.Unlock()
+}
+
+// Infof 日志
+func Infof(format string, v ...interface{}) {
+	lock.Lock()
+	fmt.Print("##[info]")
+	fmt.Println(fmt.Sprintf(format, v...))
+	lock.Unlock()
+}
+
+// Warnf 日志
+func Warnf(format string, v ...interface{}) {
+	lock.Lock()
+	fmt.Print("##[warning]")
+	fmt.Println(fmt.Sprintf(format, v...))
+	lock.Unlock()
+}
+
+// Errorf 日志
+func Errorf(format string, v ...interface{}) {
+	lock.Lock()
+	fmt.Print("##[error]")
+	fmt.Println(fmt.Sprintf(format, v...))
+	lock.Unlock()
+}
+
+// Debugf 日志
+func Debugf(format string, v ...interface{}) {
+	lock.Lock()
+	fmt.Print("##[debug]")
+	fmt.Println(fmt.Sprintf(format, v...))
+	lock.Unlock()
+}
+
+// Commandf 日志
+func Commandf(format string, v ...interface{}) {
+	lock.Lock()
+	fmt.Print("##[command]")
+	fmt.Println(fmt.Sprintf(format, v...))
+	lock.Unlock()
+}
+
+// Groupf 日志
+func Groupf(format string, v ...interface{}) {
+	lock.Lock()
+	fmt.Print("##[group]")
+	fmt.Println(fmt.Sprintf(format, v...))
+	lock.Unlock()
+}
+
+// EndGroupf 日志
+func EndGroupf(format string, v ...interface{}) {
+	lock.Lock()
+	fmt.Print("##[endgroup]")
+	fmt.Println(fmt.Sprintf(format, v...))
+	lock.Unlock()
+}
