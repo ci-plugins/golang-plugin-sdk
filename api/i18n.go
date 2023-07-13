@@ -10,7 +10,6 @@ import (
 	"sync"
 
 	"github.com/ci-plugins/golang-plugin-sdk/log"
-	"github.com/magiconair/properties"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 )
@@ -75,7 +74,10 @@ func InitI18n(translations map[string][][]string, nowLanguage string) error {
 			})
 		}
 
-		bundle.AddMessages(tag, messages...)
+		err = bundle.AddMessages(tag, messages...) 
+		if err != nil {
+			return err
+		}
 		localizers[tag] = i18n.NewLocalizer(bundle, tag.String())
 	}
 
@@ -89,23 +91,6 @@ func InitI18n(translations map[string][][]string, nowLanguage string) error {
 	ChangeLocalizer(nowLanguage)
 
 	return nil
-}
-
-func parseMessages(fileName string) ([]*i18n.Message, error) {
-	pro, err := properties.LoadFile(fileName, properties.UTF8)
-	if err != nil {
-		return nil, err
-	}
-
-	var messages = []*i18n.Message{}
-	for _, key := range pro.Keys() {
-		messages = append(messages, &i18n.Message{
-			ID:    key,
-			Other: pro.GetString(key, ""),
-		})
-	}
-
-	return messages, nil
 }
 
 // ChangeLocalizer 切换国际化语言
